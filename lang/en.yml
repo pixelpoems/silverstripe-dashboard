@@ -1,0 +1,30 @@
+en:
+  Pixelpoems\Dashboard\Admin\DashboardAdmin:
+    MENUTITLE: Dashboard
+    NO_PANELS: 'No panels configured.'
+    LOADING: 'Loading...'
+    FROM: From
+    TO: To
+    APPLY: Apply
+    PRESET_DAYS: '{count} days'
+    LEGEND_RANGE: 'Follows the selected period'
+    LEGEND_TOTAL: 'Total, independent of the period'
+  Pixelpoems\Dashboard\Panel\DashboardPanel:
+    NO_TEMPLATE: 'No template found for this panel.'
+    TOTAL: Total
+    TREND: '{change} % vs. previous period'
+    TREND_NEW: 'previous period: 0'
+    TREND_NONE: 'no change vs. previous period'
+  Pixelpoems\Dashboard\Panel\TablePanel:
+    NO_DATA: 'No data available.'
+    SHOWN_OF_TOTAL: 'Showing {shown} of {total}'
+    SHOW_ALL: 'Show all'
+  Pixelpoems\Dashboard\Panel\LineChartPanel:
+    NO_DATA: 'No data in the selected period.'
+    SHOW_DATA: 'Show data as table'
+    PERIOD: Period
+    WEEK_OF: 'Week of {date}'
+  Pixelpoems\Dashboard\Panel\Example\MemberCountPanel:
+    TITLE: Members
+    LABEL: 'Registered members'
+    COMPARE: '+{count} in the selected period'

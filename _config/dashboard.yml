@@ -1,0 +1,24 @@
+---
+Name: dashboard
+After:
+  - '#cmsdefaultadmin'
+---
+Pixelpoems\Dashboard\Admin\DashboardAdmin:
+  # Register panels per project, keyed by a unique panel key:
+  #   panels:
+  #     members:
+  #       class: Pixelpoems\Dashboard\Panel\Example\MemberCountPanel
+  #       sort: 10
+  #       width: 4
+  #     orders: false # disable a panel registered elsewhere
+  panels: []
+
+SilverStripe\Core\Injector\Injector:
+  Psr\SimpleCache\CacheInterface.DashboardPanel:
+    factory: SilverStripe\Core\Cache\CacheFactory
+    constructor:
+      namespace: 'DashboardPanel'
+
+
+SilverStripe\Admin\AdminRootController:
+  default_panel: Pixelpoems\Dashboard\Admin\DashboardAdmin

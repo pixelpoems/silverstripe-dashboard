@@ -1,0 +1,19 @@
+{
+    "name": "pixelpoems/dashboard",
+    "description": "Configurable dashboard for the Silverstripe CMS",
+    "type": "silverstripe-vendormodule",
+    "require": {
+        "php": "^8.3",
+        "silverstripe/admin": "^3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Pixelpoems\\Dashboard\\": "src/"
+        }
+    },
+    "extra": {
+        "expose": [
+            "client/dist"
+        ]
+    }
+}
