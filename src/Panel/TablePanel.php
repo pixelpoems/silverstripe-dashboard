@@ -10,7 +10,8 @@ use SilverStripe\Model\List\ArrayList;
  *
  * getData() is expected to return:
  * - Columns: list of column headings
- * - Rows: list of rows, each a list of cell values in column order
+ * - Rows: list of rows, each a list of cells in column order. A cell is either a plain value
+ *   or ['Value' => mixed, 'Link' => ?string] to link the cell
  * - Total: optional total number of records, shown as "x of y" if more records exist than rows shown
  * - MoreLink / MoreTitle: optional link to the complete list
  */
@@ -36,7 +37,9 @@ abstract class TablePanel extends DashboardPanel
         $data['Rows'] = ArrayList::create(array_map(
             fn (array $row) => ArrayData::create([
                 'Cells' => ArrayList::create(array_map(
-                    fn ($value) => ArrayData::create(['Value' => $value]),
+                    fn ($cell) => ArrayData::create(is_array($cell)
+                        ? ['Value' => $cell['Value'] ?? '', 'Link' => $cell['Link'] ?? null]
+                        : ['Value' => $cell]),
                     array_values($row)
                 )),
             ]),

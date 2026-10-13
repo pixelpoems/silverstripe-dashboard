@@ -1,10 +1,16 @@
 <% if $HasValues %>
 	<div class="dashboard-linechart" data-dashboard-chart="$ChartData.ATT">
+		<% if $IsMulti %>
+			<ul class="dashboard-linechart__legend">
+				<% loop $SeriesList %>
+					<li class="dashboard-linechart__legend-item dashboard-linechart__series--$SeriesIndex">$Title</li>
+				<% end_loop %>
+			</ul>
+		<% end_if %>
 		<div class="dashboard-linechart__plot"></div>
 		<div class="dashboard-linechart__tooltip" hidden>
-			<strong class="dashboard-linechart__tooltip-value"></strong>
-			<span class="dashboard-linechart__tooltip-series"></span>
 			<span class="dashboard-linechart__tooltip-label"></span>
+			<div class="dashboard-linechart__tooltip-values"></div>
 		</div>
 	</div>
 	<details class="dashboard-linechart__data">
@@ -13,12 +19,17 @@
 			<thead>
 				<tr>
 					<th scope="col"><%t Pixelpoems\\Dashboard\\Panel\\LineChartPanel.PERIOD 'Period' %></th>
-					<th scope="col">$SeriesTitle</th>
+					<% loop $SeriesList %>
+						<th scope="col">$Title</th>
+					<% end_loop %>
 				</tr>
 			</thead>
 			<tbody>
-				<% loop $Points %>
-					<tr><td>$Label</td><td>$Value</td></tr>
+				<% loop $Rows %>
+					<tr>
+						<td>$Label</td>
+						<% loop $Values %><td>$Value</td><% end_loop %>
+					</tr>
 				<% end_loop %>
 			</tbody>
 		</table>

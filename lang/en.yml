@@ -24,7 +24,31 @@ en:
     SHOW_DATA: 'Show data as table'
     PERIOD: Period
     WEEK_OF: 'Week of {date}'
-  Pixelpoems\Dashboard\Panel\Example\MemberCountPanel:
+  Pixelpoems\Dashboard\Panel\BasicPanels\MemberCountPanel:
     TITLE: Members
     LABEL: 'Registered members'
     COMPARE: '+{count} in the selected period'
+  Pixelpoems\Dashboard\Panel\SilvershopPanels\ShopOrderRangePanel:
+    TITLE: Orders
+  Pixelpoems\Dashboard\Panel\SilvershopPanels\ShopOrderChartPanel:
+    TITLE: 'Orders over time'
+    SERIES_LOCALE: 'Orders ({locale})'
+    SERIES_ALL: 'Orders (all countries)'
+  Pixelpoems\Dashboard\Panel\SilvershopPanels\ShopOrderLatestPanel:
+    TITLE: 'Latest orders'
+    ORDER_NR: 'Order no.'
+    DATE: Date
+    ACCOUNT: Account
+    LOCALE: Locale
+    STATE: State
+    VALUE: Value
+    SHOW_ALL: 'All orders in the order manager'
+  Pixelpoems\Dashboard\Panel\SilvershopPanels\ShopProductBestsellerPanel:
+    TITLE: Bestsellers
+    ARTICLE_NR: 'Article no.'
+    PRODUCT: Product
+    QUANTITY: 'Quantity sold'
+    ORDERS: Orders
+    DELETED: '(deleted product)'
+  Pixelpoems\Dashboard\Panel\SilvershopPanels\ShopOrderRevenuePanel:
+    TITLE: Revenue

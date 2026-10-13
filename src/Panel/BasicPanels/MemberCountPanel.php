@@ -1,6 +1,6 @@
 <?php
 
-namespace Pixelpoems\Dashboard\Panel\Example;
+namespace Pixelpoems\Dashboard\Panel\BasicPanels;
 
 use Pixelpoems\Dashboard\Panel\KpiPanel;
 use SilverStripe\Security\Member;

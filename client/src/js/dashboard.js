@@ -36,7 +36,7 @@
             }
         });
 
-        // Line chart - single series as SVG with crosshair tooltip, re-rendered on resize
+        // Line chart - one or more series as SVG with crosshair tooltip, re-rendered on resize
         $('.dashboard-linechart[data-dashboard-chart]').entwine({
             onmatch: function () {
                 this._super();
@@ -57,11 +57,24 @@
                 this._super();
             },
 
+            /**
+             * Chart data as list of series ({title, values}), supports the former single series format ({series, values})
+             */
+            getSeries: function () {
+                var data = this.data('dashboard-chart') || {};
+                if (Array.isArray(data.series)) {
+                    return data.series;
+                }
+
+                return data.values ? [{ title: data.series || '', values: data.values }] : [];
+            },
+
             renderChart: function () {
                 var data = this.data('dashboard-chart');
+                var series = this.getSeries();
                 var plot = this.find('.dashboard-linechart__plot');
                 var width = plot.width();
-                if (!data || !data.values || !data.values.length || !width) {
+                if (!data || !series.length || !series[0].values.length || !width) {
                     return;
                 }
 
@@ -70,9 +83,9 @@
                 var pad = { top: 16, right: 48, bottom: 28, left: 40 };
                 var innerW = width - pad.left - pad.right;
                 var innerH = height - pad.top - pad.bottom;
-                var values = data.values;
-                var count = values.length;
-                var max = Math.max.apply(null, values);
+                var multi = series.length > 1;
+                var count = series[0].values.length;
+                var max = Math.max.apply(null, series.map(function (s) { return Math.max.apply(null, s.values); }));
 
                 // Clean tick step (1, 2, 5 * 10^n) for ~4 gridlines
                 var raw = Math.max(max, 1) / 4;
@@ -84,6 +97,7 @@
                 var x = function (i) { return pad.left + (count === 1 ? innerW / 2 : i * innerW / (count - 1)); };
                 var y = function (v) { return pad.top + innerH - v / top * innerH; };
                 var format = function (v) { return v.toLocaleString(document.documentElement.lang || undefined); };
+                var seriesClass = function (index) { return 'dashboard-linechart__series--' + index; };
 
                 var el = function (name, attrs, parent) {
                     var node = document.createElementNS(NS, name);
@@ -101,7 +115,7 @@
                     class: 'dashboard-linechart__svg',
                     role: 'img',
                     tabindex: 0,
-                    'aria-label': data.series
+                    'aria-label': series.map(function (s) { return s.title; }).join(', ')
                 });
 
                 // Gridlines + y ticks
@@ -118,42 +132,60 @@
                         .textContent = data.labels[i];
                 }
 
-                // Area wash + line
-                var line = values.map(function (v, i) { return (i ? 'L' : 'M') + x(i) + ' ' + y(v); }).join(' ');
-                el('path', { d: line + ' L' + x(count - 1) + ' ' + y(0) + ' L' + x(0) + ' ' + y(0) + ' Z', class: 'dashboard-linechart__area' }, svg);
-                el('path', { d: line, class: 'dashboard-linechart__line' }, svg);
+                // Lines (area wash and end value label only for a single series, they would overlap otherwise)
+                series.forEach(function (s, index) {
+                    var line = s.values.map(function (v, i) { return (i ? 'L' : 'M') + x(i) + ' ' + y(v); }).join(' ');
+                    if (!multi) {
+                        el('path', { d: line + ' L' + x(count - 1) + ' ' + y(0) + ' L' + x(0) + ' ' + y(0) + ' Z', class: 'dashboard-linechart__area' }, svg);
+                    }
+                    el('path', { d: line, class: 'dashboard-linechart__line ' + seriesClass(index) }, svg);
+                    el('circle', { cx: x(count - 1), cy: y(s.values[count - 1]), r: 4, class: 'dashboard-linechart__dot ' + seriesClass(index) }, svg);
+                });
 
-                // End dot + value label
-                el('circle', { cx: x(count - 1), cy: y(values[count - 1]), r: 4, class: 'dashboard-linechart__dot' }, svg);
-                el('text', { x: x(count - 1) + 10, y: y(values[count - 1]), class: 'dashboard-linechart__end-label', 'dominant-baseline': 'middle' }, svg)
-                    .textContent = format(values[count - 1]);
+                if (!multi) {
+                    var last = series[0].values[count - 1];
+                    el('text', { x: x(count - 1) + 10, y: y(last), class: 'dashboard-linechart__end-label', 'dominant-baseline': 'middle' }, svg)
+                        .textContent = format(last);
+                }
 
-                // Crosshair + hover dot
+                // Crosshair + hover dot per series
                 var crosshair = el('line', { y1: pad.top, y2: pad.top + innerH, class: 'dashboard-linechart__crosshair', visibility: 'hidden' }, svg);
-                var hoverDot = el('circle', { r: 4, class: 'dashboard-linechart__dot', visibility: 'hidden' }, svg);
+                var hoverDots = series.map(function (s, index) {
+                    return el('circle', { r: 4, class: 'dashboard-linechart__dot ' + seriesClass(index), visibility: 'hidden' }, svg);
+                });
                 var hit = el('rect', { x: pad.left - 12, y: 0, width: innerW + 24, height: height, fill: 'transparent' }, svg);
 
                 plot.empty().append(svg);
 
                 var tooltip = this.find('.dashboard-linechart__tooltip');
-                tooltip.find('.dashboard-linechart__tooltip-series').text(data.series);
+                var tooltipValues = tooltip.find('.dashboard-linechart__tooltip-values');
                 var active = count - 1;
 
                 var show = function (index) {
                     active = Math.max(0, Math.min(count - 1, index));
                     var cx = x(active);
-                    var cy = y(values[active]);
                     crosshair.setAttribute('x1', cx);
                     crosshair.setAttribute('x2', cx);
                     crosshair.setAttribute('visibility', 'visible');
-                    hoverDot.setAttribute('cx', cx);
-                    hoverDot.setAttribute('cy', cy);
-                    hoverDot.setAttribute('visibility', 'visible');
 
-                    tooltip.find('.dashboard-linechart__tooltip-value').text(format(values[active]));
+                    tooltipValues.empty();
+                    series.forEach(function (s, i) {
+                        hoverDots[i].setAttribute('cx', cx);
+                        hoverDots[i].setAttribute('cy', y(s.values[active]));
+                        hoverDots[i].setAttribute('visibility', 'visible');
+
+                        tooltipValues.append(
+                            $('<span class="dashboard-linechart__tooltip-series"></span>')
+                                .addClass(seriesClass(i))
+                                .append($('<strong class="dashboard-linechart__tooltip-value"></strong>').text(format(s.values[active])))
+                                .append(document.createTextNode(' ' + s.title))
+                        );
+                    });
                     tooltip.find('.dashboard-linechart__tooltip-label').text(data.labels[active]);
                     tooltip.prop('hidden', false);
 
+                    // Position next to the highest point of the active index
+                    var cy = y(Math.max.apply(null, series.map(function (s) { return s.values[active]; })));
                     var left = cx + 12;
                     if (left + tooltip.outerWidth() > width) {
                         left = cx - 12 - tooltip.outerWidth();
@@ -163,7 +195,7 @@
 
                 var hide = function () {
                     crosshair.setAttribute('visibility', 'hidden');
-                    hoverDot.setAttribute('visibility', 'hidden');
+                    hoverDots.forEach(function (dot) { dot.setAttribute('visibility', 'hidden'); });
                     tooltip.prop('hidden', true);
                 };
 

@@ -8,7 +8,7 @@
 		<tbody>
 			<% loop $Rows %>
 				<tr>
-					<% loop $Cells %><td>$Value</td><% end_loop %>
+					<% loop $Cells %><td><% if $Link %><a href="$Link">$Value</a><% else %>$Value<% end_if %></td><% end_loop %>
 				</tr>
 			<% end_loop %>
 		</tbody>

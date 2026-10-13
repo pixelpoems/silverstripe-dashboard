@@ -10,11 +10,14 @@ use SilverStripe\ORM\FieldType\DBDate;
 use SilverStripe\ORM\FieldType\DBField;
 
 /**
- * Panel showing a single series as line chart, rendered client side as SVG (no chart library needed).
+ * Panel showing one or more series as line chart, rendered client side as SVG (no chart library needed).
  *
- * getData() is expected to return:
+ * getData() is expected to return either a single series:
  * - Points: list of points, each ['Label' => string, 'Value' => int|float]
  * - SeriesTitle: optional name of the series, shown in the tooltip
+ *
+ * or multiple series sharing the same labels (e.g. built with {@link countByInterval()} on the same date range):
+ * - Series: list of series, each ['Title' => string, 'Points' => list of points as above]
  *
  * {@link countByInterval()} builds the points for "records per day / week / month" within the date range.
  */
@@ -111,17 +114,59 @@ abstract class LineChartPanel extends DashboardPanel
 
     protected function prepareTemplateData(array $data): array
     {
-        $points = array_values($data['Points'] ?? []);
+        $series = $this->normaliseSeries($data);
+        $labels = array_map(fn (array $point) => (string) $point['Label'], $series[0]['Points'] ?? []);
 
-        $data['SeriesTitle'] = ($data['SeriesTitle'] ?? '') ?: $this->getTitle();
         $data['ChartData'] = json_encode([
-            'series' => $data['SeriesTitle'],
-            'labels' => array_map(fn (array $point) => (string) $point['Label'], $points),
-            'values' => array_map(fn (array $point) => (float) $point['Value'], $points),
+            'labels' => $labels,
+            'series' => array_map(fn (array $item) => [
+                'title' => $item['Title'],
+                'values' => array_map(fn (array $point) => (float) $point['Value'], $item['Points']),
+            ], $series),
         ]);
-        $data['Points'] = ArrayList::create(array_map(fn (array $point) => ArrayData::create($point), $points));
-        $data['HasValues'] = array_sum(array_column($points, 'Value')) > 0;
+
+        $data['SeriesList'] = ArrayList::create(array_map(
+            fn (array $item, int $index) => ArrayData::create(['Title' => $item['Title'], 'SeriesIndex' => $index]),
+            $series,
+            array_keys($series)
+        ));
+
+        $rows = [];
+        foreach ($labels as $i => $label) {
+            $rows[] = ArrayData::create([
+                'Label' => $label,
+                'Values' => ArrayList::create(array_map(
+                    fn (array $item) => ArrayData::create(['Value' => $item['Points'][$i]['Value'] ?? 0]),
+                    $series
+                )),
+            ]);
+        }
+        $data['Rows'] = ArrayList::create($rows);
+
+        // Single series variables, kept for custom templates
+        $data['SeriesTitle'] = $series[0]['Title'] ?? '';
+        $data['Points'] = ArrayList::create(array_map(fn (array $point) => ArrayData::create($point), $series[0]['Points'] ?? []));
+
+        $data['IsMulti'] = count($series) > 1;
+        $data['HasValues'] = array_sum(array_map(fn (array $item) => array_sum(array_column($item['Points'], 'Value')), $series)) > 0;
 
         return $data;
+    }
+
+    /**
+     * Series of the panel data as list of ['Title' => string, 'Points' => array], "Points" / "SeriesTitle" are
+     * converted into a single series
+     */
+    protected function normaliseSeries(array $data): array
+    {
+        $series = $data['Series'] ?? [[
+            'Title' => $data['SeriesTitle'] ?? '',
+            'Points' => $data['Points'] ?? [],
+        ]];
+
+        return array_values(array_map(fn (array $item) => [
+            'Title' => (string) (($item['Title'] ?? '') ?: $this->getTitle()),
+            'Points' => array_values($item['Points'] ?? []),
+        ], $series));
     }
 }

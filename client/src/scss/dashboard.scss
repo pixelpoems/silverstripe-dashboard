@@ -9,6 +9,12 @@ $dashboard-breakpoint-sm: 575px;
     --dashboard-color-range-bg: rgba(0, 113, 196, .1);
     --dashboard-color-total: var(--bs-secondary, #6c757d);
     --dashboard-color-total-bg: rgba(108, 117, 125, .12);
+
+    // Line chart series colours (in order of the series)
+    --dashboard-chart-color-0: var(--dashboard-color-range);
+    --dashboard-chart-color-1: var(--dashboard-color-total);
+    --dashboard-chart-color-2: #e8833a;
+    --dashboard-chart-color-3: #2a9d8f;
 }
 
 @mixin dashboard-marker($type) {
@@ -197,6 +203,9 @@ $dashboard-breakpoint-sm: 575px;
 
 // Table
 .dashboard-table {
+    // Reset the CMS table styles (negative margins + min-width wider than the container)
+    width: 100%;
+    min-width: 0;
     margin: 0;
 
     thead th {
@@ -234,6 +243,41 @@ $dashboard-breakpoint-sm: 575px;
 .dashboard-linechart {
     position: relative;
 
+    // Series colour, used by lines, dots, legend and tooltip markers
+    @for $i from 0 through 3 {
+        &__series--#{$i} {
+            --dashboard-series-color: var(--dashboard-chart-color-#{$i});
+        }
+    }
+
+    &__legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .25rem 1rem;
+        margin: 0 0 .5rem;
+        padding: 0;
+        list-style: none;
+        font-size: .8125rem;
+    }
+
+    &__legend-item {
+        display: flex;
+        align-items: center;
+        gap: .375rem;
+
+        &::before {
+            content: '';
+            width: .75rem;
+            height: 2px;
+            background: var(--dashboard-series-color, var(--dashboard-color-range));
+        }
+
+        &.dashboard-linechart__series--1::before {
+            background: none;
+            border-top: 2px dashed var(--dashboard-series-color);
+        }
+    }
+
     &__plot {
         min-height: 240px;
     }
@@ -267,10 +311,15 @@ $dashboard-breakpoint-sm: 575px;
 
     &__line {
         fill: none;
-        stroke: var(--dashboard-color-range);
+        stroke: var(--dashboard-series-color, var(--dashboard-color-range));
         stroke-width: 2;
         stroke-linejoin: round;
         stroke-linecap: round;
+
+        // Second series dashed, so the lines can be told apart without colour
+        &.dashboard-linechart__series--1 {
+            stroke-dasharray: 6 4;
+        }
     }
 
     &__area {
@@ -279,7 +328,7 @@ $dashboard-breakpoint-sm: 575px;
     }
 
     &__dot {
-        fill: var(--dashboard-color-range);
+        fill: var(--dashboard-series-color, var(--dashboard-color-range));
         stroke: #fff;
         stroke-width: 2;
         paint-order: stroke;
@@ -331,8 +380,13 @@ $dashboard-breakpoint-sm: 575px;
             content: '';
             width: .75rem;
             height: 2px;
-            background: var(--dashboard-color-range);
+            background: var(--dashboard-series-color, var(--dashboard-color-range));
         }
+    }
+
+    &__tooltip-values {
+        display: flex;
+        flex-direction: column;
     }
 
     &__tooltip-label {

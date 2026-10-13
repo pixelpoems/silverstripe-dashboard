@@ -13,6 +13,7 @@ use SilverStripe\Security\Member;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\Security;
 use SilverStripe\View\SSViewer;
+use SilverStripe\i18n\i18n;
 
 /**
  * Base class for all dashboard panels.
@@ -43,7 +44,8 @@ abstract class DashboardPanel extends ModelData
 
     /**
      * Seconds to cache the result of getData(), 0 disables caching.
-     * Note: the cache is shared across members - don't cache member specific data.
+     * Note: the cache is shared across members - if the data depends on anything else than the date range
+     * (e.g. the current locale), add it to {@link getCacheKeyParts()}.
      */
     private static int $cache_lifetime = 0;
 
@@ -134,12 +136,18 @@ abstract class DashboardPanel extends ModelData
     }
 
     /**
-     * Project overrides are used as is, class config values are translatable via <class>.<entity>
+     * Class config values are translatable via <class>.<entity>, project overrides via
+     * Pixelpoems\Dashboard\Admin\DashboardAdmin.PANEL_<PANEL_KEY>_<entity> (e.g. PANEL_ORDERS_RANGE_ALL_TITLE)
      */
     protected function getTranslatedOption(string $name, string $entity): string
     {
         if (array_key_exists($name, $this->overrides)) {
-            return (string) $this->overrides[$name];
+            $override = (string) $this->overrides[$name];
+            $key = strtoupper(preg_replace('/[^a-z0-9]+/i', '_', $this->getKey()));
+
+            return $override !== '' && $key !== ''
+                ? _t(DashboardAdmin::class . '.PANEL_' . $key . '_' . $entity, $override)
+                : $override;
         }
 
         $default = (string) static::config()->get($name);
@@ -254,16 +262,30 @@ abstract class DashboardPanel extends ModelData
     }
 
     /**
+     * Parts the cache key of getData() is built from. Add everything the data depends on
+     * (e.g. the current locale), either by overriding or via the updateCacheKeyParts extension hook.
+     */
+    protected function getCacheKeyParts(): array
+    {
+        $parts = [
+            static::class,
+            $this->getKey(),
+            $this->usesDateRange() ? $this->getDateRange()->getCacheKey() : 'total',
+            i18n::get_locale()
+        ];
+
+        $this->extend('updateCacheKeyParts', $parts);
+
+        return $parts;
+    }
+
+    /**
      * getData() incl. extension hook and caching
      */
     public function getCachedData(): array
     {
         $lifetime = (int) $this->getOption('cache_lifetime');
-        $cacheKey = md5(implode('_', [
-            static::class,
-            $this->getKey(),
-            $this->usesDateRange() ? $this->getDateRange()->getCacheKey() : 'total',
-        ]));
+        $cacheKey = md5(implode('_', $this->getCacheKeyParts()));
 
         if ($lifetime > 0 && $this->cache && $this->cache->has($cacheKey)) {
             return $this->cache->get($cacheKey);

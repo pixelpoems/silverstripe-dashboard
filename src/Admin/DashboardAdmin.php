@@ -25,7 +25,7 @@ use SilverStripe\View\Requirements;
  * Pixelpoems\Dashboard\Admin\DashboardAdmin:
  *   panels:
  *     members:
- *       class: Pixelpoems\Dashboard\Panel\Example\MemberCountPanel
+ *       class: Pixelpoems\Dashboard\Panel\BasicPanels\MemberCountPanel
  *       sort: 10
  *       width: 4
  *     orders: false # disable a panel registered by another module
