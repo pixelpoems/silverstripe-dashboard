@@ -86,8 +86,8 @@ class DashboardAdmin extends LeftAndMain
     {
         parent::init();
 
-        Requirements::css('pixelpoems/dashboard: client/dist/css/dashboard.css');
-        Requirements::javascript('pixelpoems/dashboard: client/dist/js/dashboard.js');
+        Requirements::css('pixelpoems/silverstripe-dashboard: client/dist/css/dashboard.min.css');
+        Requirements::javascript('pixelpoems/silverstripe-dashboard: client/dist/js/dashboard.min.js');
     }
 
     /**

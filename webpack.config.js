@@ -13,19 +13,13 @@ module.exports = {
     mode: 'production',
     target: 'web',
     entry: {
-        "vanilla-cookie-consent": [
-            PATHS.SRC + '/javascript/vanilla-cookie-consent.js',
-            PATHS.SRC + '/scss/vanilla-cookie-consent.scss'
+        "dashboard": [
+            PATHS.SRC + '/js/dashboard.js',
+            PATHS.SRC + '/scss/dashboard.scss'
         ],
-        "vanilla-cookie-consent-dialog": [
-            PATHS.SRC + '/javascript/vanilla-cookie-consent-dialog.js'
-        ],
-        "vanilla-cookie-consent-backend" : [
-            PATHS.SRC + '/javascript/backend.js'
-        ]
     },
     output: {
-        filename: 'javascript/[name].min.js',
+        filename: 'js/[name].min.js',
         path: PATHS.DIST,
     },
     plugins: [

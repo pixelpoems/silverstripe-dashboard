@@ -1,7 +1,22 @@
 {
-    "name": "pixelpoems/dashboard",
+    "name": "pixelpoems/silverstripe-dashboard",
     "description": "Configurable dashboard for the Silverstripe CMS",
     "type": "silverstripe-vendormodule",
+    "keywords": [
+        "silverstripe",
+        "dashboard",
+        "cms"
+    ],
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Bettina Wagner-Löffler",
+            "homepage": "https://www.pixelpoems.com/",
+            "role": "Lead Developer"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "require": {
         "php": "^8.3",
         "silverstripe/admin": "^3"
@@ -12,6 +27,7 @@
         }
     },
     "extra": {
+        "installer-name": "silverstripe-dashboard",
         "expose": [
             "client/dist"
         ]
